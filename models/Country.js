@@ -1,6 +1,6 @@
 "use strict";
 
-const { Model } = require("sequelize");
+const { Model, Sequelize } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
     class Country extends Model {
@@ -12,22 +12,22 @@ module.exports = (sequelize, DataTypes) => {
     Country.init(
         {
             id: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                autoIncrement: true,
+                type: Sequelize.INTEGER,
                 allowNull: false,
+                autoIncrement: true,
+                primaryKey: true,
             },
             country_code: {
-                type: DataTypes.CHAR(2),
+                type: Sequelize.STRING(2),
                 allowNull: false,
                 unique: true,
             },
             country_name: {
-                type: DataTypes.STRING(100),
+                type: Sequelize.STRING(100),
                 allowNull: false,
             },
             currency_code: {
-                type: DataTypes.CHAR(3),
+                type: Sequelize.CHAR(3),
                 allowNull: false,
             },
         },

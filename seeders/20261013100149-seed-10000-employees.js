@@ -1,4 +1,3 @@
-
 "use strict";
 
 const firstNames = [
@@ -200,48 +199,76 @@ function generateHireDate() {
 
 module.exports = {
   async up(queryInterface) {
+    if (
+      !firstNames.length ||
+      !lastNames.length ||
+      !jobs.length ||
+      !departments.length
+    ) {
+      throw new Error(
+        "Seeder arrays cannot be empty: firstNames, lastNames, jobs, departments."
+      );
+    }
+
     const [countries] = await queryInterface.sequelize.query(
-      "SELECT country_code FROM countries"
+      "SELECT id, country_code FROM countries"
     );
 
-    const existingCodes = new Set(
-      countries.map((country) => country.country_code.trim())
+    const countryIdMap = new Map(
+      countries.map((country) => [
+        country.country_code.trim().toUpperCase(),
+        country.id,
+      ])
     );
 
     for (const location of locations) {
-      if (!existingCodes.has(location.country_code)) {
+      if (!countryIdMap.has(location.country_code)) {
         throw new Error(
-          `Country ${location.country_code} is missing from countries table. Run migrations first.`
+          `Country ${location.country_code} is missing from countries table. Run the countries migration first.`
         );
       }
     }
 
-    for (let start = 1; start <= TOTAL_EMPLOYEES; start += BATCH_SIZE) {
+    for (
+      let start = 1;
+      start <= TOTAL_EMPLOYEES;
+      start += BATCH_SIZE
+    ) {
       const employees = [];
-      const end = Math.min(start + BATCH_SIZE, TOTAL_EMPLOYEES + 1);
+      const end = Math.min(
+        start + BATCH_SIZE,
+        TOTAL_EMPLOYEES + 1
+      );
 
       for (let i = start; i < end; i++) {
-        const firstName = firstNames[(i - 1) % firstNames.length];
-        const lastName = lastNames[
+        const firstName =
+          firstNames[(i - 1) % firstNames.length];
+
+        const lastName =
+          lastNames[
           Math.floor((i - 1) / firstNames.length) %
           lastNames.length
-        ];
+          ];
 
         const location = locations[(i - 1) % locations.length];
-        const fullName = `${firstName} ${lastName}`;
-        const emailName = `${firstName}.${lastName}.${i}`.toLowerCase().replace(/[^a-z0-9.]/g, "");
+
+        const emailName = `${firstName}.${lastName}.${i}`
+          .toLowerCase()
+          .replace(/[^a-z0-9.]/g, "");
+
         const now = new Date();
 
         employees.push({
-          full_name: fullName,
+          full_name: `${firstName} ${lastName}`,
           email: `${emailName}@example.com`,
           job_title: jobs[(i - 1) % jobs.length],
           department: departments[(i - 1) % departments.length],
-          country_code: location.country_code,
+          country_id: countryIdMap.get(location.country_code),
           salary: generateSalary(location),
           hire_date: generateHireDate(),
           created_at: now,
           updated_at: now,
+          deleted_at: null,
         });
       }
 
@@ -252,13 +279,12 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete(
-      "employees",
-      {
-        email: {
-          [Sequelize.Op.like]: "%@example.com",
-        },
-      }
-    );
+    await queryInterface.bulkDelete("employees", {
+      email: {
+        [Sequelize.Op.like]: "%@example.com",
+      },
+    });
+
+    console.log("Removed seeded example.com employees.");
   },
 };

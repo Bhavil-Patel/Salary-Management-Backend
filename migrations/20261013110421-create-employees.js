@@ -64,7 +64,6 @@ module.exports = {
 
     await queryInterface.addIndex("employees", ["job_title"]);
     await queryInterface.addIndex("employees", ["department"]);
-    await queryInterface.addIndex("employees", ["country_code"]);
   },
 
   async down(queryInterface) {
