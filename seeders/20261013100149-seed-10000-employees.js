@@ -172,61 +172,50 @@ const departments = [
 ];
 
 const locations = [
-  {
-    country: "IN",
-    currency: "INR",
-    minSalary: 15000,
-    maxSalary: 80000,
-  },
-  {
-    country: "US",
-    currency: "USD",
-    minSalary: 10000,
-    maxSalary: 50000,
-  },
-  {
-    country: "GB",
-    currency: "GBP",
-    minSalary: 5000,
-    maxSalary: 50000,
-  },
-  {
-    country: "CA",
-    currency: "CAD",
-    minSalary: 4000,
-    maxSalary: 20000,
-  },
-  {
-    country: "AU",
-    currency: "AUD",
-    minSalary: 5000,
-    maxSalary: 60000,
-  },
+  { country_code: "IN", minSalary: 15000, maxSalary: 80000 },
+  { country_code: "US", minSalary: 10000, maxSalary: 50000 },
+  { country_code: "GB", minSalary: 5000, maxSalary: 50000 },
+  { country_code: "CA", minSalary: 4000, maxSalary: 20000 },
+  { country_code: "AU", minSalary: 5000, maxSalary: 60000 },
 ];
 
 const TOTAL_EMPLOYEES = 10000;
 const BATCH_SIZE = 1000;
 
 function generateSalary(location) {
-  const amount =
+  return Math.trunc(
     location.minSalary +
-    Math.random() * (location.maxSalary - location.minSalary);
-
-  return Math.trunc(amount);;
+    Math.random() * (location.maxSalary - location.minSalary)
+  );
 }
 
 function generateHireDate() {
-  const startDate = new Date("2015-01-01T00:00:00Z").getTime();
-  const endDate = new Date("2026-10-13T00:00:00Z").getTime();
-
-  const randomTimestamp =
+  const startDate = Date.UTC(2015, 0, 1);
+  const endDate = Date.UTC(2026, 9, 13);
+  const timestamp =
     startDate + Math.random() * (endDate - startDate);
 
-  return new Date(randomTimestamp).toISOString().slice(0, 10);
+  return new Date(timestamp).toISOString().slice(0, 10);
 }
 
 module.exports = {
   async up(queryInterface) {
+    const [countries] = await queryInterface.sequelize.query(
+      "SELECT country_code FROM countries"
+    );
+
+    const existingCodes = new Set(
+      countries.map((country) => country.country_code.trim())
+    );
+
+    for (const location of locations) {
+      if (!existingCodes.has(location.country_code)) {
+        throw new Error(
+          `Country ${location.country_code} is missing from countries table. Run migrations first.`
+        );
+      }
+    }
+
     for (let start = 1; start <= TOTAL_EMPLOYEES; start += BATCH_SIZE) {
       const employees = [];
       const end = Math.min(start + BATCH_SIZE, TOTAL_EMPLOYEES + 1);
@@ -247,12 +236,10 @@ module.exports = {
           full_name: fullName,
           email: `${emailName}@example.com`,
           job_title: jobs[(i - 1) % jobs.length],
-          department:
-            departments[(i - 1) % departments.length],
-          country: location.country,
-          currency: location.currency,
+          department: departments[(i - 1) % departments.length],
+          country_code: location.country_code,
           salary: generateSalary(location),
-          hire_date: generateHireDate(i),
+          hire_date: generateHireDate(),
           created_at: now,
           updated_at: now,
         });
