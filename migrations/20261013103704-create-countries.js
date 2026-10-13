@@ -4,6 +4,12 @@
 module.exports = {
     async up(queryInterface, Sequelize) {
         await queryInterface.createTable("countries", {
+            id: {
+                type: Sequelize.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+                allowNull: false,
+            },
             country_code: {
                 type: Sequelize.CHAR(2),
                 primaryKey: true,
@@ -25,10 +31,13 @@ module.exports = {
             updated_at: {
                 type: Sequelize.DATE,
                 allowNull: false,
-                defaultValue: Sequelize.literal(
-                    "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
-                ),
+                defaultValue: Sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
             },
+            deleted_at: {
+                type: Sequelize.DATE,
+                allowNull: true,
+                defaultValue: null,
+            }
         });
 
         await queryInterface.bulkInsert("countries", [

@@ -1,32 +1,47 @@
-
 "use strict";
 
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/db");
+const { Model } = require("sequelize");
 
-const Country = sequelize.define(
-    "Country",
-    {
-        country_code: {
-            type: DataTypes.CHAR(2),
-            primaryKey: true,
-            allowNull: false,
-        },
-        country_name: {
-            type: DataTypes.STRING(100),
-            allowNull: false,
-        },
-        currency_code: {
-            type: DataTypes.CHAR(3),
-            allowNull: false,
-        },
-    },
-    {
-        tableName: "countries",
-        timestamps: true,
-        createdAt: "created_at",
-        updatedAt: "updated_at",
+module.exports = (sequelize, DataTypes) => {
+    class Country extends Model {
+        static associate(models) {
+            Country.hasMany(models.Employee, { foreignKey: "country_id", as: "employees", });
+        }
     }
-);
 
-module.exports = Country;
+    Country.init(
+        {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+                allowNull: false,
+            },
+            country_code: {
+                type: DataTypes.CHAR(2),
+                allowNull: false,
+                unique: true,
+            },
+            country_name: {
+                type: DataTypes.STRING(100),
+                allowNull: false,
+            },
+            currency_code: {
+                type: DataTypes.CHAR(3),
+                allowNull: false,
+            },
+        },
+        {
+            sequelize,
+            modelName: "Country",
+            tableName: "countries",
+            timestamps: true,
+            paranoid: true,
+            createdAt: "created_at",
+            updatedAt: "updated_at",
+            deletedAt: "deleted_at",
+        }
+    );
+
+    return Country;
+};

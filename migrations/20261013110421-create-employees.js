@@ -27,12 +27,12 @@ module.exports = {
         type: Sequelize.STRING(100),
         allowNull: false,
       },
-      country_code: {
-        type: Sequelize.CHAR(2),
+      country_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: "countries",
-          key: "country_code",
+          key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
@@ -53,10 +53,13 @@ module.exports = {
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal(
-          "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
-        ),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
       },
+      deleted_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        defaultValue: null,
+      }
     });
 
     await queryInterface.addIndex("employees", ["job_title"]);
