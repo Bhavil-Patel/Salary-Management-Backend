@@ -1,0 +1,242 @@
+================================================================================
+                    SALARY MANAGEMENT SYSTEM — BACKEND
+                   SOFTWARE REQUIREMENTS SPECIFICATION (SRS)
+================================================================================
+Project: Salary Management System Backend
+Repository / Corpus: Bhavil-Patel/Salary-Management-Backend
+Version: 1.0.0
+Architecture: Node.js / Express REST API with MySQL & Sequelize ORM
+Format: Plain Text Specification
+================================================================================
+
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. PROJECT OVERVIEW
+2. SYSTEM & RUNTIME PREREQUISITES
+3. SOFTWARE & PACKAGE DEPENDENCIES
+4. FUNCTIONAL REQUIREMENTS (FR)
+   4.1 FR-1: Employee Master Management
+   4.2 FR-2: Automated Payroll Engine & Compensation Breakdown
+   4.3 FR-3: Salary Revisions & Appraisal Tracking
+   4.4 FR-4: Executive Analytics & Dashboard Intelligence
+   4.5 FR-5: Master Data Management (Department, Job, Country)
+5. STATUTORY SALARY CALCULATION FORMULAS & DEDUCTION RULES
+6. NON-FUNCTIONAL REQUIREMENTS (NFR)
+7. DATABASE SCHEMA & ENTITY RELATIONSHIPS
+8. REST API ENDPOINTS SPECIFICATION
+================================================================================
+
+
+1. PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+The Salary Management System Backend provides enterprise-grade compensation,
+payroll processing, employee records management, salary appraisals, and
+statistical dashboard analytics. The backend exposes standard RESTful endpoints
+consumed by client frontend applications.
+
+
+2. SYSTEM & RUNTIME PREREQUISITES
+--------------------------------------------------------------------------------
+- Operating System:       Windows 10/11, Ubuntu/Debian Linux, or macOS
+- Processor Architecture: 64-bit Dual Core x86/ARM or higher
+- System Memory (RAM):    Minimum 2 GB (4 GB+ recommended for large seedings)
+- Disk Storage:           Minimum 500 MB free space
+- Node.js Runtime:        Node.js >= 18.0.0 LTS (Tested on v24.21.0)
+- Package Manager:        Yarn >= 1.22.0 or npm >= 9.0.0
+- Database Engine:        MySQL Server >= 8.0 or MariaDB >= 10.5
+- Default Server Port:    5000 (configurable via .env PORT)
+
+
+3. SOFTWARE & PACKAGE DEPENDENCIES
+--------------------------------------------------------------------------------
+Production Dependencies:
+- express (v5.3.0)        : REST API web framework, routing, JSON parsing
+- mysql2 (v3.24.5)        : High-performance MySQL database driver
+- sequelize (v6.37.8)     : Promise-based ORM, associations, paranoid deletion
+- dotenv (v18.0.7)        : Environment variable management from .env
+
+Development Dependencies:
+- nodemon (v3.1.14)       : Development server auto-reload on code change
+- sequelize-cli (v6.6.5)  : Database migrations and seed execution CLI
+
+
+4. FUNCTIONAL REQUIREMENTS (FR)
+--------------------------------------------------------------------------------
+
+4.1 FR-1: EMPLOYEE MASTER MANAGEMENT
+- FR-1.1 Validation: Creating an employee requires valid full_name, unique email,
+  job_id, department_id, country_id, salary (positive decimal), and hire_date.
+- FR-1.2 Email Uniqueness: Duplicate email addresses must be rejected with an
+  HTTP 400 validation error.
+- FR-1.3 Listing & Pagination: The system must provide paginated employee lists
+  supporting 'page' and 'limit' query parameters.
+- FR-1.4 Filtering & Search: Support case-insensitive wildcard search on employee
+  names and emails, plus exact filtering by job_id and department_id.
+- FR-1.5 Relational Data: Employee fetch operations must eager-load associated
+  Country, Department, and Job records.
+- FR-1.6 Partial Updates: Updating an employee must allow updating specific fields
+  without requiring a full re-submission.
+- FR-1.7 Soft Deletion: Deleting an employee must execute a soft delete (updating
+  deleted_at timestamp) to protect historical payroll records.
+
+4.2 FR-2: AUTOMATED PAYROLL ENGINE & COMPENSATION BREAKDOWN
+- FR-2.1 Dynamic Breakdown: The payroll engine must calculate all statutory
+  earnings and deductions directly from an employee's base salary.
+- FR-2.2 Batch Monthly Generation: The system must allow processing payroll for
+  an entire department or all active company employees for any designated
+  month and year in a single batch operation.
+- FR-2.3 Duplicate Prevention: If an employee already has a payroll record for the
+  requested month and year, the system must skip generation for that employee.
+- FR-2.4 Manual Creation: Support custom single payroll entries with custom bonus
+  and deduction adjustments.
+- FR-2.5 Status Lifecycle: Payroll records must maintain status values
+  ('PROCESSED' or 'PAID').
+- FR-2.6 Single Payment: Support marking an individual payroll entry as 'PAID'
+  with payment_date and payment_method (e.g., 'BANK_TRANSFER').
+- FR-2.7 Bulk Payment: Support marking all unpaid payrolls in a selected month,
+  year, or department as 'PAID' in a single API request.
+- FR-2.8 Summary Metrics: Every payroll list request must return aggregate
+  financial totals: totalGross, totalDeductions, totalNet, totalCount,
+  paidCount, and processedCount.
+
+4.3 FR-3: SALARY REVISIONS & APPRAISAL TRACKING
+- FR-3.1 Revision Logging: Log historical salary adjustments with previous_salary,
+  new_salary, increment_percentage, effective_date, revision_type, and remarks.
+- FR-3.2 Automatic Increment Calculation: Increment percentage must be
+  automatically calculated:
+  ((new_salary - previous_salary) / previous_salary) * 100
+- FR-3.3 Live Salary Sync: Recording a salary revision MUST immediately update
+  the employee's active salary in the 'employees' table.
+- FR-3.4 Audit Trail: Revision history must be queryable per employee or
+  company-wide with pagination and search.
+
+4.4 FR-4: EXECUTIVE ANALYTICS & DASHBOARD INTELLIGENCE
+- FR-4.1 Core Compensation KPIs: Calculate in real time:
+  * Total Headcount (active employee count)
+  * Average Salary (arithmetic mean across all active staff)
+  * Median Salary (true median handling both odd and even dataset lengths)
+  * Minimum Salary and Maximum Salary
+- FR-4.2 Grouped Metrics: Aggregate headcount, average, median, minimum, and
+  maximum salary grouped by:
+  * Country
+  * Department
+  * Job Title
+- FR-4.3 Adaptive Salary Distribution: Dynamically generate a 6-bucket histogram
+  with step sizes scaled according to salary ranges (e.g., $20k - $40k).
+
+4.5 FR-5: MASTER DATA MANAGEMENT
+- FR-5.1 Departments: CRUD management for organizational departments with unique
+  department names.
+- FR-5.2 Jobs: CRUD management for job titles and roles.
+- FR-5.3 Countries: CRUD management for countries including country_code,
+  country_name, and currency_code.
+- FR-5.4 Paranoid Mode: Soft delete enabled across all master data tables.
+
+
+5. STATUTORY SALARY CALCULATION FORMULAS & DEDUCTION RULES
+--------------------------------------------------------------------------------
+
+A. GROSS SALARY COMPONENTS:
+   - Basic Salary          = Base Salary * 50%  (0.50)
+   - HRA (House Rent)      = Base Salary * 20%  (0.20)
+   - Conveyance Allowance  = Base Salary * 5%   (0.05)
+   - Medical Allowance     = Base Salary * 5%   (0.05)
+   - Special Allowance     = Base Salary - (Basic + HRA + Conveyance + Medical)
+                             [Approximately 20% balancing component]
+   - Performance Bonus     = Optional bonus amount or percentage
+   -----------------------------------------------------------------------------
+   Gross Salary = Basic + HRA + Conveyance + Medical + Special + Bonus
+
+B. STATUTORY DEDUCTION RULES:
+   - Provident Fund (PF)   = Basic Salary * 12% (0.12)
+   - Professional Tax (PT) = Flat Rs. 200 if Base Salary > 15,000; else 0
+   - TDS (Income Tax)      =
+       * Annual Salary (Monthly * 12) > 1,000,000 : Gross Salary * 10%
+       * Annual Salary (Monthly * 12) > 500,000   : Gross Salary * 5%
+       * Annual Salary <= 500,000                 : 0
+   - Other Deductions      = Custom loan/penalties deduction
+   -----------------------------------------------------------------------------
+   Total Deductions = PF + PT + TDS + Other Deductions
+
+C. NET TAKE-HOME SALARY:
+   Net Salary = MAX(0, Gross Salary - Total Deductions)
+
+
+6. NON-FUNCTIONAL REQUIREMENTS (NFR)
+--------------------------------------------------------------------------------
+- NFR-1 Data Integrity: All relationships enforced via database Foreign Keys.
+  Soft-delete enabled on all primary models to maintain referential integrity.
+- NFR-2 Performance: Optimized queries with Sequelize include statements.
+  Pagination enforced to prevent memory crashes on datasets of 10,000+ rows.
+- NFR-3 Security: Database credentials and secrets managed strictly through .env.
+  Parameterized SQL queries through Sequelize to prevent SQL Injection.
+- NFR-4 Cross-Origin Resource Sharing: Built-in CORS middleware to allow
+  unrestricted integration with client frontend web applications.
+- NFR-5 Standardized Responses: Consistent JSON structure:
+  Success: { success: true, message: string, data?: any, pagination?: object }
+  Failure: { success: false, message: string, error?: string }
+
+
+7. DATABASE SCHEMA & ENTITY RELATIONSHIPS
+--------------------------------------------------------------------------------
+Tables:
+1. countries        (id, country_code, country_name, currency_code, timestamps)
+2. departments      (id, department_name, timestamps)
+3. jobs             (id, job_title, timestamps)
+4. employees        (id, full_name, email, job_id, department_id, country_id,
+                     salary, hire_date, timestamps, deleted_at)
+5. payrolls         (id, employee_id, month, year, basic_salary, hra,
+                     conveyance_allowance, medical_allowance, special_allowance,
+                     bonus, gross_salary, pf_deduction, professional_tax,
+                     tds_tax, other_deductions, total_deductions, net_salary,
+                     payment_method, payment_date, status, remarks, timestamps,
+                     deleted_at)
+6. salary_revisions (id, employee_id, previous_salary, new_salary,
+                     increment_percentage, effective_date, revision_type,
+                     remarks, timestamps, deleted_at)
+
+Relationships:
+- countries.id        1 --- * employees.country_id
+- departments.id      1 --- * employees.department_id
+- jobs.id             1 --- * employees.job_id
+- employees.id        1 --- * payrolls.employee_id
+- employees.id        1 --- * salary_revisions.employee_id
+
+
+8. REST API ENDPOINTS SPECIFICATION
+--------------------------------------------------------------------------------
+Base URL: http://localhost:5000/api
+
+Health Check:
+  GET    /api                     Server status check
+
+Employees (/api/employees):
+  GET    /api/employees           List employees (page, limit, name, job, department)
+  GET    /api/employees/:id       Get single employee by ID
+  POST   /api/employees/add       Create employee
+  PUT    /api/employees/update    Update employee
+  DELETE /api/employees/:id       Soft delete employee
+
+Payroll (/api/payroll):
+  GET    /api/payroll             List payrolls with summary metrics
+  GET    /api/payroll/:id         Get single payroll details
+  POST   /api/payroll/generate    Auto-generate batch monthly payroll
+  POST   /api/payroll/create      Create single manual payroll
+  PUT    /api/payroll/:id         Update payroll entry
+  POST   /api/payroll/:id/pay     Mark individual payroll as PAID
+  POST   /api/payroll/bulk-pay    Bulk mark multiple payrolls as PAID
+  DELETE /api/payroll/:id         Soft delete payroll entry
+
+Salary Revisions (/api/salary-revisions):
+  GET    /api/salary-revisions    List salary revisions (page, limit, search)
+  POST   /api/salary-revisions/add Record revision & sync employee base salary
+  DELETE /api/salary-revisions/:id Delete revision record
+
+Dashboard Analytics (/api/dashboard):
+  GET    /api/dashboard           Executive compensation analytics & distributions
+
+Master Data:
+  Department: GET, POST, PUT, DELETE at /api/department
+  Job:        GET, POST, PUT, DELETE at /api/job
+  Country:    GET, POST, PUT, DELETE at /api/country
+================================================================================
