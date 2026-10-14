@@ -8,6 +8,8 @@ module.exports = (sequelize, DataTypes) => {
             Employee.belongsTo(models.Country, { foreignKey: "country_id", as: "country", });
             Employee.belongsTo(models.Department, { foreignKey: "department_id", as: "department", });
             Employee.belongsTo(models.Job, { foreignKey: "job_id", as: "job", });
+            Employee.hasMany(models.Payroll, { foreignKey: "employee_id", as: "payrolls" });
+            Employee.hasMany(models.SalaryRevision, { foreignKey: "employee_id", as: "salary_revisions" });
         }
     }
 
