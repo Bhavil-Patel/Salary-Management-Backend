@@ -7,6 +7,8 @@ const jobsRouter = require('./jobs/route');
 const departmentRouter = require('./department/route');
 const countryRouter = require('./country/route');
 const dashboardRouter = require('./dashboard/route');
+const payrollRouter = require('./payroll/route');
+const salaryRevisionRouter = require('./salaryRevision/route');
 
 app.use(express.json());
 
@@ -24,6 +26,8 @@ app.use('/api/job', jobsRouter);
 app.use('/api/department', departmentRouter);
 app.use('/api/country', countryRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/payroll', payrollRouter);
+app.use('/api/salary-revisions', salaryRevisionRouter);
 
 app.get("/api", (req, res) => {
     res.status(200).json({
