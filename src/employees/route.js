@@ -3,7 +3,7 @@ const { addEmployee, updateEmployee, getEmployee, getEmployeesList, deleteEmploy
 const router = Router();
 
 router.post("/add", addEmployee);
-router.post("/update", updateEmployee);
+router.put("/update", updateEmployee);
 router.get("/:employee_id", getEmployee);
 router.get("/", getEmployeesList);
 router.delete("/:employee_id", deleteEmployee);

@@ -2,6 +2,11 @@ const express = require("express");
 require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
+const employeesRouter = require('./employees/route');
+const jobsRouter = require('./jobs/route');
+const departmentRouter = require('./department/route');
+const countryRouter = require('./country/route');
+
 app.use(express.json());
 
 // CORS Middleware
@@ -13,8 +18,10 @@ app.use((req, res, next) => {
     next();
 });
 
-const employeesRouter = require('./employees/route');
 app.use('/api/employees', employeesRouter);
+app.use('/api/job', jobsRouter);
+app.use('/api/department', departmentRouter);
+app.use('/api/country', countryRouter);
 
 app.get("/api", (req, res) => {
     res.status(200).json({
