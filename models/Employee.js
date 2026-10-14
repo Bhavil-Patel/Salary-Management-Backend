@@ -6,6 +6,8 @@ module.exports = (sequelize, DataTypes) => {
     class Employee extends Model {
         static associate(models) {
             Employee.belongsTo(models.Country, { foreignKey: "country_id", as: "country", });
+            Employee.belongsTo(models.Department, { foreignKey: "department_id", as: "department", });
+            Employee.belongsTo(models.Job, { foreignKey: "job_id", as: "job", });
         }
     }
 
@@ -26,13 +28,21 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 unique: true,
             },
-            job_title: {
-                type: DataTypes.STRING(100),
+            job_id: {
+                type: DataTypes.INTEGER,
                 allowNull: false,
+                references: {
+                    model: "jobs",
+                    key: "id",
+                },
             },
-            department: {
-                type: DataTypes.STRING(100),
+            department_id: {
+                type: DataTypes.INTEGER,
                 allowNull: false,
+                references: {
+                    model: "departments",
+                    key: "id",
+                },
             },
             country_id: {
                 type: DataTypes.INTEGER,

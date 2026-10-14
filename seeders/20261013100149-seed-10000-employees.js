@@ -1,4 +1,5 @@
 "use strict";
+const { Op } = require("sequelize");
 
 const firstNames = [
   "Aarav", "Vivaan", "Aditya", "Arjun", "Rahul",
@@ -118,6 +119,45 @@ module.exports = {
       }
     }
 
+    const [departmentRows] = await queryInterface.sequelize.query(
+      "SELECT id, department_name FROM departments WHERE deleted_at IS NULL"
+    );
+
+    const departmentIdMap = new Map(
+      departmentRows.map((department) => [
+        department.department_name,
+        department.id,
+      ])
+    );
+
+    for (const department of departments) {
+      if (!departmentIdMap.has(department)) {
+        throw new Error(
+          `Department "${department}" is missing. Check the departments migration.`
+        );
+      }
+    }
+
+    const [jobRows] = await queryInterface.sequelize.query(
+      "SELECT id, job_title FROM jobs WHERE deleted_at IS NULL"
+    );
+
+    const jobIdMap = new Map(
+      jobRows.map((job) => [
+        job.job_title,
+        job.id,
+      ])
+    );
+
+    for (const job of jobs) {
+      if (!jobIdMap.has(job)) {
+        throw new Error(
+          `Job "${job}" is missing. Check the jobs migration.`
+        );
+      }
+    }
+
+    // Insert employees in batches.
     for (
       let start = 1;
       start <= TOTAL_EMPLOYEES;
@@ -141,6 +181,11 @@ module.exports = {
 
         const location = locations[(i - 1) % locations.length];
 
+        const jobTitle = jobs[(i - 1) % jobs.length];
+
+        const departmentName =
+          departments[(i - 1) % departments.length];
+
         const emailName = `${firstName}.${lastName}.${i}`
           .toLowerCase()
           .replace(/[^a-z0-9.]/g, "");
@@ -150,8 +195,8 @@ module.exports = {
         employees.push({
           full_name: `${firstName} ${lastName}`,
           email: `${emailName}@example.com`,
-          job_title: jobs[(i - 1) % jobs.length],
-          department: departments[(i - 1) % departments.length],
+          job_id: jobIdMap.get(jobTitle),
+          department_id: departmentIdMap.get(departmentName),
           country_id: countryIdMap.get(location.country_code),
           salary: generateSalary(location),
           hire_date: generateHireDate(),
@@ -167,13 +212,19 @@ module.exports = {
     console.log(`Successfully seeded ${TOTAL_EMPLOYEES} employees.`);
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete("employees", {
-      email: {
-        [Sequelize.Op.like]: "%@example.com",
-      },
-    });
+  async down(queryInterface) {
+    await queryInterface.bulkUpdate("employees", {
+      deleted_at: new Date(),
+      updated_at: new Date(),
+    },
+      {
+        email: {
+          [Op.like]: "%@example.com",
+        },
+        deleted_at: null,
+      }
+    );
 
-    console.log("Removed seeded example.com employees.");
+    console.log("Soft-deleted seeded example.com employees.");
   },
 };

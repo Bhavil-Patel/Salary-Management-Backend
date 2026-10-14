@@ -1,4 +1,3 @@
-
 "use strict";
 
 module.exports = {
@@ -19,14 +18,27 @@ module.exports = {
         allowNull: false,
         unique: true,
       },
-      job_title: {
-        type: Sequelize.STRING(100),
+      job_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: "jobs",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "RESTRICT",
       },
-      department: {
-        type: Sequelize.STRING(100),
+      department_id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
+        references: {
+          model: "departments",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "RESTRICT",
       },
+
       country_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -62,8 +74,9 @@ module.exports = {
       }
     });
 
-    await queryInterface.addIndex("employees", ["job_title"]);
-    await queryInterface.addIndex("employees", ["department"]);
+    await queryInterface.addIndex("employees", ["job_id"]);
+    await queryInterface.addIndex("employees", ["department_id"]);
+    await queryInterface.addIndex("employees", ["country_id"]);
   },
 
   async down(queryInterface) {
