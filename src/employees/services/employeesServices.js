@@ -1,5 +1,5 @@
 ﻿const { Op } = require("sequelize");
-const { Employee, Country, sequelize } = require("../../../models");
+const { Employee, Country, Department, Job, sequelize } = require("../../../models");
 
 async function addEmployeeService({ data, ...rest }) {
     try {
@@ -97,7 +97,11 @@ async function getSingleEmployeeService(employee_id) {
         }
         const employee = await Employee.findOne({
             where: { id: employee_id },
-            include: [{ model: Country, as: "country" }]
+            include: [
+                { model: Country, as: "country" },
+                { model: Department, as: "department" },
+                { model: Job, as: "job" }
+            ]
         });
         if (!employee) {
             return {
@@ -132,14 +136,14 @@ async function getEmployeesListService({ page = 1, limit = 10, name, job, depart
             };
         }
 
-        if (job && typeof job === "string" && job.trim() && job !== "ALL") {
-            where.job_title = {
+        if (job && job.trim() && job !== "ALL") {
+            where.job_id = {
                 [Op.like]: `%${job.trim()}%`
             };
         }
 
-        if (department && typeof department === "string" && department.trim() && department !== "ALL") {
-            where.department = department.trim();
+        if (department && department.trim() && department !== "ALL") {
+            where.department_id = department.trim();
         }
 
         const { count, rows } = await Employee.findAndCountAll({
@@ -147,7 +151,11 @@ async function getEmployeesListService({ page = 1, limit = 10, name, job, depart
             limit,
             offset,
             order: [["id", "ASC"]],
-            include: [{ model: Country, as: "country" }]
+            include: [
+                { model: Country, as: "country" },
+                { model: Department, as: "department" },
+                { model: Job, as: "job" }
+            ]
         });
 
         return {
