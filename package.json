@@ -4,6 +4,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+    "build": "esbuild src/server.js --platform=node --bundle --packages=external --minify --outfile=server.js",
     "dev": "nodemon src/server.js",
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
@@ -21,6 +22,7 @@
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "sequelize-cli": "^6.6.5"
   }
 }
