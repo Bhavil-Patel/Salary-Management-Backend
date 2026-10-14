@@ -62,6 +62,7 @@ async function getPayrollListService({ page = 1, limit = 10, month, year, status
         }
 
         const offset = (page - 1) * limit;
+        const hasEmployeeFilter = Reflect.ownKeys(employeeWhere).length > 0;
 
         const { count, rows } = await Payroll.findAndCountAll({
             where: whereClause,
@@ -69,7 +70,8 @@ async function getPayrollListService({ page = 1, limit = 10, month, year, status
                 {
                     model: Employee,
                     as: 'employee',
-                    where: Object.keys(employeeWhere).length > 0 ? employeeWhere : undefined,
+                    required: hasEmployeeFilter,
+                    where: hasEmployeeFilter ? employeeWhere : undefined,
                     include: [
                         { model: Department, as: 'department' },
                         { model: Job, as: 'job' },
@@ -77,14 +79,26 @@ async function getPayrollListService({ page = 1, limit = 10, month, year, status
                     ],
                 },
             ],
+            subQuery: false,
             order: [['created_at', 'DESC'], ['id', 'DESC']],
             limit,
             offset,
             distinct: true,
         });
 
+        const employeeSummaryInclude = hasEmployeeFilter ? [
+            {
+                model: Employee,
+                as: 'employee',
+                attributes: [],
+                required: true,
+                where: employeeWhere,
+            }
+        ] : [];
+
         const allMatching = await Payroll.findAll({
             where: whereClause,
+            include: employeeSummaryInclude,
             attributes: [
                 [sequelize.fn('SUM', sequelize.col('gross_salary')), 'totalGross'],
                 [sequelize.fn('SUM', sequelize.col('total_deductions')), 'totalDeductions'],
@@ -94,8 +108,16 @@ async function getPayrollListService({ page = 1, limit = 10, month, year, status
             raw: true,
         });
 
-        const paidCount = await Payroll.count({ where: { ...whereClause, status: 'PAID' } });
-        const processedCount = await Payroll.count({ where: { ...whereClause, status: 'PROCESSED' } });
+        const paidCount = await Payroll.count({
+            where: { ...whereClause, status: 'PAID' },
+            include: employeeSummaryInclude,
+            distinct: true,
+        });
+        const processedCount = await Payroll.count({
+            where: { ...whereClause, status: 'PROCESSED' },
+            include: employeeSummaryInclude,
+            distinct: true,
+        });
 
         const summary = {
             totalGross: Number(allMatching[0]?.totalGross || 0),

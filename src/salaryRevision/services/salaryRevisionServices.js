@@ -15,6 +15,7 @@ async function getSalaryRevisionsService({ page = 1, limit = 10, employee_id, se
         }
 
         const offset = (page - 1) * limit;
+        const hasEmployeeFilter = Reflect.ownKeys(employeeWhere).length > 0;
 
         const { count, rows } = await SalaryRevision.findAndCountAll({
             where: whereClause,
@@ -22,7 +23,8 @@ async function getSalaryRevisionsService({ page = 1, limit = 10, employee_id, se
                 {
                     model: Employee,
                     as: 'employee',
-                    where: Object.keys(employeeWhere).length > 0 ? employeeWhere : undefined,
+                    required: hasEmployeeFilter,
+                    where: hasEmployeeFilter ? employeeWhere : undefined,
                     include: [
                         { model: Department, as: 'department' },
                         { model: Job, as: 'job' },
@@ -30,6 +32,7 @@ async function getSalaryRevisionsService({ page = 1, limit = 10, employee_id, se
                     ],
                 },
             ],
+            subQuery: false,
             order: [['effective_date', 'DESC'], ['created_at', 'DESC']],
             limit,
             offset,
