@@ -1,16 +1,10 @@
 const { Employee, Country, Department, Job, sequelize } = require("../../../models");
 
-function getPercentile(sortedArray, p) {
+function getMedian(sortedArray) {
     const n = sortedArray.length;
     if (n === 0) return 0;
-    if (n === 1) return sortedArray[0];
-
-    const index = (p / 100) * (n - 1);
-    const lower = Math.floor(index);
-    const upper = Math.ceil(index);
-    const weight = index - lower;
-
-    return Math.round(sortedArray[lower] * (1 - weight) + sortedArray[upper] * weight);
+    const mid = Math.floor(n / 2);
+    return n % 2 !== 0 ? sortedArray[mid] : Math.round((sortedArray[mid - 1] + sortedArray[mid]) / 2);
 }
 
 function generateDistributionBuckets(salaries, minSalary, maxSalary) {
@@ -103,7 +97,6 @@ async function getDashboardInsightsService() {
                     medianSalary: 0,
                     minSalary: 0,
                     maxSalary: 0,
-                    percentiles: { p10: 0, p25: 0, p50: 0, p75: 0, p90: 0 },
                     byCountry: [],
                     byDepartment: [],
                     byJobTitle: [],
@@ -122,15 +115,7 @@ async function getDashboardInsightsService() {
         const avgSalary = Math.round(sum / n);
         const minSalary = salaries[0];
         const maxSalary = salaries[n - 1];
-        const medianSalary = getPercentile(salaries, 50);
-
-        const percentiles = {
-            p10: getPercentile(salaries, 10),
-            p25: getPercentile(salaries, 25),
-            p50: medianSalary,
-            p75: getPercentile(salaries, 75),
-            p90: getPercentile(salaries, 90)
-        };
+        const medianSalary = getMedian(salaries);
 
         const calculateGroupMetrics = (getLabel) => {
             const groupMap = new Map();
@@ -151,7 +136,7 @@ async function getDashboardInsightsService() {
                 const gAvg = Math.round(gSum / count);
                 const gMin = groupSalaries[0];
                 const gMax = groupSalaries[count - 1];
-                const gMedian = getPercentile(groupSalaries, 50);
+                const gMedian = getMedian(groupSalaries);
 
                 results.push({
                     label,
@@ -180,7 +165,6 @@ async function getDashboardInsightsService() {
                 medianSalary,
                 minSalary,
                 maxSalary,
-                percentiles,
                 byCountry,
                 byDepartment,
                 byJobTitle,

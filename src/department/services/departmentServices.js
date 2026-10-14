@@ -180,7 +180,7 @@ async function getDepartmentsListService({ page, limit, search, department_name,
         if (!isPaginated || all === "true" || all === true) {
             const departments = await Department.findAll({
                 where,
-                order: [["department_name", "ASC"]]
+                order: [["id", "ASC"]]
             });
 
             return {

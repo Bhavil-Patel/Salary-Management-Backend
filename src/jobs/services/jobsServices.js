@@ -174,7 +174,7 @@ async function getJobsListService({ page, limit, search, job_title, all } = {}) 
         if (!isPaginated || all === "true" || all === true) {
             const jobs = await Job.findAll({
                 where,
-                order: [["job_title", "ASC"]]
+                order: [["id", "ASC"]]
             });
 
             return {
