@@ -6,6 +6,7 @@ const employeesRouter = require('./employees/route');
 const jobsRouter = require('./jobs/route');
 const departmentRouter = require('./department/route');
 const countryRouter = require('./country/route');
+const dashboardRouter = require('./dashboard/route');
 
 app.use(express.json());
 
@@ -22,6 +23,7 @@ app.use('/api/employees', employeesRouter);
 app.use('/api/job', jobsRouter);
 app.use('/api/department', departmentRouter);
 app.use('/api/country', countryRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 app.get("/api", (req, res) => {
     res.status(200).json({
