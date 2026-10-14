@@ -11,9 +11,9 @@ module.exports = {
                 allowNull: false,
             },
             country_code: {
-                type: Sequelize.CHAR(2),
-                primaryKey: true,
+                type: Sequelize.STRING(2),
                 allowNull: false,
+                unique: true,
             },
             country_name: {
                 type: Sequelize.STRING(100),
