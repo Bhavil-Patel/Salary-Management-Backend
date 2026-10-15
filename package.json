@@ -6,6 +6,7 @@
     "start": "node src/server.js",
     "build": "esbuild src/server.js --platform=node --bundle --packages=external --minify --outfile=server.js",
     "dev": "nodemon src/server.js",
+    "test": "jest --runInBand",
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
     "db:migrate:status": "sequelize-cli db:migrate:status",
@@ -23,6 +24,8 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
-    "sequelize-cli": "^6.6.5"
+    "jest": "^30.5.2",
+    "sequelize-cli": "^6.6.5",
+    "supertest": "^7.3.1"
   }
 }

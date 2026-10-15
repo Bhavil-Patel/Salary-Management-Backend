@@ -1,5 +1,5 @@
 const express = require("express");
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 const app = express();
 const PORT = process.env.PORT || 5000;
 const employeesRouter = require('./employees/route');
@@ -36,8 +36,11 @@ app.get("/api", (req, res) => {
     });
 });
 
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+        console.log(`Environment: ${process.env.NODE_ENV}`);
+    });
+}
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV}`);
-});
+module.exports = app;

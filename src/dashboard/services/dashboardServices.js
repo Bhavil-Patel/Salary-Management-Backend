@@ -182,5 +182,7 @@ async function getDashboardInsightsService() {
 }
 
 module.exports = {
-    getDashboardInsightsService
+    getDashboardInsightsService,
+    getMedian,
+    generateDistributionBuckets
 };

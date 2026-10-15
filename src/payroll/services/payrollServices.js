@@ -476,4 +476,14 @@ async function deletePayrollService(id) {
     }
 }
 
-module.exports = { getPayrollListService, getPayrollByIdService, generateMonthlyPayrollService, createPayrollService, updatePayrollService, markPayrollPaidService, bulkMarkPaidService, deletePayrollService };
+module.exports = {
+    calculateSalaryBreakdown,
+    getPayrollListService,
+    getPayrollByIdService,
+    generateMonthlyPayrollService,
+    createPayrollService,
+    updatePayrollService,
+    markPayrollPaidService,
+    bulkMarkPaidService,
+    deletePayrollService
+};
