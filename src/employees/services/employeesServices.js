@@ -4,8 +4,8 @@ const { Employee, Country, Department, Job, sequelize } = require("../../../mode
 async function addEmployeeService({ data, ...rest }) {
     try {
         const payload = data || rest;
-        const { full_name, email, job_title, department, country_id, salary, hire_date } = payload;
-        if (!full_name || !email || !job_title || !department || !country_id || !salary || !hire_date) {
+        const { full_name, email, job_id, department_id, country_id, salary, hire_date } = payload;
+        if (!full_name || !email || !job_id || !department_id || !country_id || !salary || !hire_date) {
             return {
                 success: false,
                 message: "All fields are required",
@@ -23,8 +23,8 @@ async function addEmployeeService({ data, ...rest }) {
         const newEmployee = await Employee.create({
             full_name,
             email,
-            job_title,
-            department,
+            job_id,
+            department_id,
             country_id,
             salary,
             hire_date
@@ -62,12 +62,12 @@ async function updateEmployeeService({ data, employee_id, ...rest }) {
                 error: "Not found"
             };
         }
-        const { full_name, email, job_title, department, country_id, salary, hire_date } = payload;
+        const { full_name, email, job_id, department_id, country_id, salary, hire_date } = payload;
         await employee.update({
             full_name: full_name !== undefined ? full_name : employee.full_name,
             email: email !== undefined ? email : employee.email,
-            job_title: job_title !== undefined ? job_title : employee.job_title,
-            department: department !== undefined ? department : employee.department,
+            job_id: job_id !== undefined ? job_id : employee.job_id,
+            department_id: department_id !== undefined ? department_id : employee.department_id,
             country_id: country_id !== undefined ? country_id : employee.country_id,
             salary: salary !== undefined ? salary : employee.salary,
             hire_date: hire_date !== undefined ? hire_date : employee.hire_date
